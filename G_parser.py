@@ -2,7 +2,7 @@
 
 import signal, sys, time 
 import ConfigParser
-import re
+import re, math
 
 class Parser(object):
     def __init__(self, params):
@@ -17,7 +17,7 @@ class Parser(object):
         self.feed_rate_z=default_params['z_feed']
         move_params=self.params['move_params']
         self.rapid_feed=(move_params['x_max_feed']**2+move_params['y_max_feed']**2+move_params['z_max_feed']**2)**0.5
-
+        self.d_alpha=math.pi/360
 ############---Setters---############
 
     def set_mode(self, value):
@@ -35,8 +35,24 @@ class Parser(object):
         else:
             return 1
 
+    def set_polar_plane(self, value):
+        polar_plane_map={17:'XY', 18:'XZ', 19:'YZ'}
+        self.polar_plane=polar_plane_map[value]
+
+    def get_polar_plane(self):
+        if hasattr(self, 'polar_plane'):
+            return self.polar_plane
+        else:
+            return 'XY'
+
     def set_clockwise(self, value):
         self.clockwise=value
+
+    def get_clockwise(self):
+        if hasattr(self, 'clockwise'):
+            return self.clockwise
+        else:
+            return 0
 
     def set_coordinates(self, coordinates):
         if 'X' not in coordinates and 'Y' not in coordinates and 'Z' not in coordinates:
@@ -63,10 +79,11 @@ class Parser(object):
         return line
 
     def convert_line(self, line):
-        expr=re.compile(r'([GXYZMSF]-*\d+\.*\d*)')
+        expr=re.compile(r'([GXYZMSFRIJK]-*\d+\.*\d*)')
         instructions={}
         for instr in expr.findall(line.upper()):
             instructions[instr[0]]=float(instr[1:])
+        self.command=instructions
         return instructions
 
     def process(self, instructions):
@@ -82,6 +99,8 @@ class Parser(object):
                 self.set_feed_mode(1)
                 self.set_shape(2)                # bow
                 self.set_clockwise(instructions['G']-2)
+            if instructions['G'] in (17,18,19):
+                self.set_polar_plane(instructions['G'])
         if 'F' in instructions:
             if 'Z' in instructions and 'X' not in instructions and 'Y' not in instructions:
                 self.feed_rate_z=instructions['F']
@@ -129,6 +148,86 @@ class Parser(object):
         self.curr_z=self.curr_z+res['steps_z']/move_params['z_steps_per_mm']*(res['dir_z']-(not res['dir_z']))
         return res
 
+    def calc_circle_center(self, x1, y1, x2, y2, r):
+        l=((x1-x2)**2+(y1-y2)**2)**0.5
+        h=(r**2-(l/2)**2)**0.5
+        xc=(x1+x2)/2
+        yc=(y1+y2)/2
+        if y1==y2:
+            dx=0
+            dy=(r**2-((x1-x2)/2)**2)**0.5
+        else:
+            k=-(x2-x1)/(y2-y1)
+        #    b=yc-k*xc
+            dx=h*math.cos(math.atan(k))
+            dy=k*dx
+#       v1=(x1-(xc+dx),y1-(yc+dy))
+#       v2=(x2-(xc+dx),y2-(yc+dy))
+        v_multi=(y1-(yc+dy))*(x2-(xc+dx))-(x1-(xc+dx))*(y2-(yc+dy))
+        if v_multi<0 and self.get_clockwise():
+            return ((xc+dx),(yc+dy))
+        else:
+            return ((xc-dx),(yc-dy))
+
+    def calc_bow_points(self, c1, c2, b1, b2, e1, e2):
+        points=[{'p1':b1,'p2':b2}]
+        b_1=b1-c1
+        b_2=b2-c2
+        r_b=((b1-c1)**2+(b2-c2)**2)**0.5
+        alpha_b=math.acos(b_1/r_b)
+        if b_2<0:
+            alpha_b=-alpha_b
+        e_1=e1-c1
+        e_2=e2-c2
+        r_e=((e1-c1)**2+(e2-c2)**2)**0.5
+        alpha_e=math.acos(e_1/r_e)
+        if e_2<0:
+            alpha_e=-alpha_e
+        if self.get_clockwise():
+            d_alpha=self.d_alpha
+            if alpha_e<alpha_b:
+                alpha_e+=math.pi*2
+        else:
+            d_alpha=-self.d_alpha
+            if alpha_e>alpha_b:
+                alpha_e-=math.pi*2
+        for i in range( int((alpha_e-alpha_b)/d_alpha)):
+            alpha_b+=d_alpha
+            b_1=r_b*math.cos(alpha_b)
+            b_2=r_b*math.sin(alpha_b)
+            points.append({'p1':b_1+c1,'p2':b_2+c2})
+        points.append({'p1':e1,'p2':e2})
+        return points
+
+    def remap_bow_poins(self,points):
+        res=[]
+        p_p=self.get_polar_plane()
+        for point in points:
+            res_point={'X':self.exp_x, 'Y':self.exp_y, 'Z':self.exp_z}
+            res_point[p_p[0]]=point['p1']
+            res_point[p_p[1]]=point['p2']
+            res.append(res_point)
+        return res
+
+    def calc_g2_3_points(self,center):
+        p_p=self.get_polar_plane()
+        g2_3_map={'X':'I','Y':'J','Z':'K'}
+        if 'C1' in center:
+            c1=center['C1']
+        else:
+            c1=center[g2_3_map[p_p[0]]]
+        if 'C2' in center:
+            c2=center['C2']
+        else:
+            c2=center[g2_3_map[p_p[1]]]
+        b1=self.__getattribute__('exp_'+p_p[0].lower())
+        b2=self.__getattribute__('exp_'+p_p[1].lower())
+        e1=self.__getattribute__('next_'+p_p[0].lower())
+        e2=self.__getattribute__('next_'+p_p[1].lower())
+        points=self.calc_bow_points(c1,c2,b1,b2,e1,e2)
+        res=self.remap_bow_poins(points)
+        return res
+
     def is_moved(self):
         return self.next_x-self.exp_x or self.next_y-self.exp_y or self.next_z-self.exp_z
 
@@ -138,8 +237,22 @@ class Parser(object):
             if not(s):
                 return None
             print self, s
+            self.convert_line(s)
             self.process(self.convert_line(s))
         res=[]
         if self.get_shape()==1:
             res.append(self.generate_line_comand(self.next_x-self.exp_x, self.next_y-self.exp_y, self.next_z-self.exp_z))
+        else:
+            if 'R' in self.command:
+                c1,c2= self.calc_circle_center(self.exp_x, self.exp_y, self.next_x, self.next_y, self.command['R'])
+                center={'C1':c1,'C2':c2}
+            else:
+                center={}
+                for c in 'IJK':
+                    if c in self.command:
+                        center[c]=self.command[c]
+            points=self.calc_g2_3_points(center)
+            for i in range(1,len(points)):
+                res.append(self.generate_line_comand(points[i]['X']-points[i-1]['X'],points[i]['Y']-points[i-1]['Y'],points[i]['Z']-points[i-1]['Z']))
+            print points
         return res
