@@ -28,7 +28,7 @@ def read_thread():
         elif command[0:4].upper()=="STOP":
             command_pool.append("STOP")
         else:
-            command_pool.append(command.apper())
+            command_pool.append(command.upper())
         print command_pool
 
 def execute_thread():
