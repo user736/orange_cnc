@@ -67,8 +67,8 @@ class Parser(object):
     def convert_line(self, line):
         expr=re.compile(r'([GXYZMSF]-*\d+\.*\d*)')
         instructions={}
-        for instr in expr.findall(line):
-            instructions[instr[0].upper()]=float(instr[1:])
+        for instr in expr.findall(line.upper()):
+            instructions[instr[0]]=float(instr[1:])
         return instructions
 
     def process(self, instructions):
