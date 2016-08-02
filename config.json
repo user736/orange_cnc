@@ -1,0 +1,29 @@
+{
+    "global":{
+        "debug":1,
+        "move_params": {
+            "x_max_feed": 150.0,
+            "x_max_travel": 300.0,
+            "x_steps_per_mm": 723.0,
+            "y_max_feed": 200.0,
+            "y_max_travel": 700.0,
+            "y_steps_per_mm": 536.0,
+            "z_max_feed": 200.0,
+            "z_max_travel": 150.0,
+            "z_steps_per_mm": 642.0
+        }
+    },
+    "gpio_handler":{
+        "debug":0,
+        "log":"STDOUT"
+    },
+    "G_parser":{
+        "debug":0,
+        "log":"STDOUT",
+        "defaults": {
+            "x_feed": 100.0,
+            "y_feed": 100.0,
+            "z_feed": 100.0
+        }
+    }
+}

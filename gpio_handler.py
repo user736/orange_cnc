@@ -8,6 +8,7 @@ from pyA20.gpio import connector
 class Movement_handler(object):
 
     def __init__(self, params):
+        self.params=params
         self.buzy=0
         signal.signal(signal.SIGALRM, self.alarm_handler)
 
@@ -26,83 +27,83 @@ class Movement_handler(object):
         gpio.output(port.PA7, 0)
         gpio.output(port.PA19, 0)
 
-        self.reset_params(params)
+        self.reset_movement({})
 
-    def reset_params(self, params):
-        params['value']=0
-        params['c_x']=0
-        params['c_y']=0
-        params['c_z']=0
-        if 'steps_x' not in params:
-            params['steps_x']=0
-        if 'steps_y' not in params:
-            params['steps_y']=0
-        if 'steps_z' not in params:
-            params['steps_z']=0
-        if 'dir_x' not in params:
-            params['dir_x']=0
-        if 'dir_y' not in params:
-            params['dir_y']=0
-        if 'dir_z' not in params:
-            params['dir_z']=0
-        if 'interval' not in params:
-            params['interval']=0.01
-        params['max_steps']= max(params['steps_x'], params['steps_y'], params['steps_z'])
-        if not params['max_steps']:
-            params['max_steps']=1
-        params['s_x']= 0 if params['steps_x'] and (params['steps_x']==params['max_steps'] or params['max_steps']//params['steps_x']>1) else 1
-        params['q_x']= params['max_steps']//params['steps_x'] if not(params['s_x']) else params['max_steps']//(params['max_steps'] - params['steps_x'])
-        params['s_y']= 0 if params['steps_y'] and (params['steps_y']==params['max_steps'] or params['max_steps']//params['steps_y']>1) else 1
-        params['q_y']= params['max_steps']//params['steps_y'] if not(params['s_y']) else params['max_steps']//(params['max_steps'] - params['steps_y'])
-        params['s_z']= 0 if params['steps_z'] and (params['steps_z']==params['max_steps'] or params['max_steps']//params['steps_z']>1) else 1
-        params['q_z']= params['max_steps']//params['steps_z'] if not(params['s_z']) else params['max_steps']//(params['max_steps'] - params['steps_z'])
-        self.params=params
-        gpio.output(port.PA8, params['dir_x'])
-        gpio.output(port.PA7, params['dir_y'])
-        gpio.output(port.PA19, params['dir_z'])
-        print params
+    def reset_movement(self, movement):
+        movement['value']=0
+        movement['c_x']=0
+        movement['c_y']=0
+        movement['c_z']=0
+        if 'steps_x' not in movement:
+            movement['steps_x']=0
+        if 'steps_y' not in movement:
+            movement['steps_y']=0
+        if 'steps_z' not in movement:
+            movement['steps_z']=0
+        if 'dir_x' not in movement:
+            movement['dir_x']=0
+        if 'dir_y' not in movement:
+            movement['dir_y']=0
+        if 'dir_z' not in movement:
+            movement['dir_z']=0
+        if 'interval' not in movement:
+            movement['interval']=0.01
+        movement['max_steps']= max(movement['steps_x'], movement['steps_y'], movement['steps_z'])
+        if not movement['max_steps']:
+            movement['max_steps']=1
+        movement['s_x']= 0 if movement['steps_x'] and (movement['steps_x']==movement['max_steps'] or movement['max_steps']//movement['steps_x']>1) else 1
+        movement['q_x']= movement['max_steps']//movement['steps_x'] if not(movement['s_x']) else movement['max_steps']//(movement['max_steps'] - movement['steps_x'])
+        movement['s_y']= 0 if movement['steps_y'] and (movement['steps_y']==movement['max_steps'] or movement['max_steps']//movement['steps_y']>1) else 1
+        movement['q_y']= movement['max_steps']//movement['steps_y'] if not(movement['s_y']) else movement['max_steps']//(movement['max_steps'] - movement['steps_y'])
+        movement['s_z']= 0 if movement['steps_z'] and (movement['steps_z']==movement['max_steps'] or movement['max_steps']//movement['steps_z']>1) else 1
+        movement['q_z']= movement['max_steps']//movement['steps_z'] if not(movement['s_z']) else movement['max_steps']//(movement['max_steps'] - movement['steps_z'])
+        self.movement=movement
+        gpio.output(port.PA8, movement['dir_x'])
+        gpio.output(port.PA7, movement['dir_y'])
+        gpio.output(port.PA19, movement['dir_z'])
+        print movement
 
     def alarm_handler(self, signum, frame):
-        params=self.params
-        if 'steps_x' not in params \
-        or 'steps_y' not in params \
-        or 'steps_z' not in params \
-        or params['steps_x']+params['steps_y']+params['steps_z']==0:
+        movement=self.movement
+        if 'steps_x' not in movement \
+        or 'steps_y' not in movement \
+        or 'steps_z' not in movement \
+        or movement['steps_x']+movement['steps_y']+movement['steps_z']==0:
             signal.setitimer(signal.ITIMER_REAL, 0)
             self.buzy=0
         else:
-            params['value']=1-params['value']
-            if params['steps_x'] > 0:
-                if (params['c_x']==params['q_x']-1)^(params['s_x']):
-                    gpio.output(port.PA20, params['value'])
-                    if not(params['value']):
-                        params['steps_x']-=1
-            if params['steps_y'] > 0:
-                if (params['c_y']==params['q_y']-1)^(params['s_y']):
-                    gpio.output(port.PA10, params['value'])
-                    if not(params['value']):
-                        params['steps_y']-=1
-            if params['steps_z'] > 0:
-                if (params['c_z']==params['q_z']-1)^(params['s_z']):
-                    gpio.output(port.PA9, params['value'])
-                    if not(params['value']):
-                        params['steps_z']-=1
-            if not(params['value']):
-                params['c_x']+=1
-                if params['c_x']==params['q_x']:
-                    params['c_x']=0
-                params['c_y']+=1
-                if params['c_y']==params['q_y']:
-                    params['c_y']=0
-                params['c_z']+=1
-                if params['c_z']==params['q_z']:
-                    params['c_z']=0
-                if (params['s_x'] and params['q_x']==2) or (params['s_y'] and params['q_y']==2) or (params['s_z'] and params['q_z']==2):
-                    self.reset_params(self.params)
+            movement['value']=1-movement['value']
+            if movement['steps_x'] > 0:
+                if (movement['c_x']==movement['q_x']-1)^(movement['s_x']):
+                    gpio.output(port.PA20, movement['value'])
+                    if not(movement['value']):
+                        movement['steps_x']-=1
+            if movement['steps_y'] > 0:
+                if (movement['c_y']==movement['q_y']-1)^(movement['s_y']):
+                    gpio.output(port.PA10, movement['value'])
+                    if not(movement['value']):
+                        movement['steps_y']-=1
+            if movement['steps_z'] > 0:
+                if (movement['c_z']==movement['q_z']-1)^(movement['s_z']):
+                    gpio.output(port.PA9, movement['value'])
+                    if not(movement['value']):
+                        movement['steps_z']-=1
+            if not(movement['value']):
+                movement['c_x']+=1
+                if movement['c_x']==movement['q_x']:
+                    movement['c_x']=0
+                movement['c_y']+=1
+                if movement['c_y']==movement['q_y']:
+                    movement['c_y']=0
+                movement['c_z']+=1
+                if movement['c_z']==movement['q_z']:
+                    movement['c_z']=0
+                if (movement['s_x'] and movement['q_x']==2) or (movement['s_y'] and movement['q_y']==2) or (movement['s_z'] and movement['q_z']==2):
+                    self.reset_movement(self.movement)
 
     def run(self):
         self.buzy=1
-        signal.setitimer(signal.ITIMER_REAL, self.params['interval'], self.params['interval'])
+        signal.setitimer(signal.ITIMER_REAL, self.movement['interval'], self.movement['interval'])
 
     def is_buzy(self):
         return self.buzy

@@ -4,15 +4,18 @@ import signal, sys, time
 #from pyA20.gpio import gpio
 #from pyA20.gpio import port
 #from pyA20.gpio import connector
+from Conf import conf_parser
 from  gpio_handler import Movement_handler
 import G_parser
 import threading
 
-params={}
-mh=Movement_handler(params)
+c_parser=conf_parser()
+
+mh=Movement_handler(c_parser.get_config('gpio_handler'))
+print mh.params
 mh.run()
 
-gparser=G_parser.Parser("cnc.cfg")
+gparser=G_parser.Parser(c_parser.get_config('G_parser'))
 print gparser.params
 
 command_pool=[]
@@ -46,7 +49,7 @@ while True:
             p=gparser.get_commands()
             if p:
                 print p
-                mh.reset_params(p)
+                mh.reset_movement(p)
                 mh.run()
                 while mh.is_buzy():
                     signal.pause()
@@ -70,7 +73,7 @@ while True:
                 if gparser.is_moved():
                     p=gparser.get_commands()
                     print p
-                    mh.reset_params(p)
+                    mh.reset_movement(p)
                     mh.run()
                     while mh.is_buzy():
                         signal.pause()

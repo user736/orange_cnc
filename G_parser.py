@@ -5,8 +5,8 @@ import ConfigParser
 import re
 
 class Parser(object):
-    def __init__(self, config_file):
-        self.read_config(config_file)
+    def __init__(self, params):
+        self.params=params
         self.mode=90  # absolute by default
         self.feed_mode=0 #rapid move by default
         self.curr_x=self.curr_y=self.curr_z=0
@@ -17,18 +17,6 @@ class Parser(object):
         self.feed_rate_z=default_params['z_feed']
         move_params=self.params['move_params']
         self.rapid_feed=(move_params['x_max_feed']**2+move_params['y_max_feed']**2+move_params['z_max_feed']**2)**0.5
-        
-
-    def read_config(self, config_file):
-        conf = ConfigParser.RawConfigParser()
-        conf.read(config_file)
-        params={}
-        for section in conf.sections():
-            params[section]={}
-            for option in conf.options(section):
-                params[section][option]=conf.getfloat(section,option) 
-        self.conf=conf
-        self.params=params
 
 ############---Setters---############
 
