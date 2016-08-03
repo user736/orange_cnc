@@ -18,8 +18,9 @@ class conf_parser(object):
     def get_config(self, module):
         res={}
         for key in self.config['global'].keys():
-            print key
             res[key]=self.config['global'][key]
         for key in self.config[module].keys():
             res[key]=self.config[module][key]
+        if 'debug' in self.config['global'] and self.config['global']['debug']>1:
+            print json.dumps(res, sort_keys=True, indent=4, separators=(',', ': '))
         return res

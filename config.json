@@ -1,6 +1,6 @@
 {
     "global":{
-        "debug":1,
+        "debug":2,
         "move_params": {
             "x_max_feed": 150.0,
             "x_max_travel": 300.0,
@@ -14,7 +14,6 @@
         }
     },
     "gpio_handler":{
-        "debug":0,
         "log":"STDOUT"
     },
     "G_parser":{

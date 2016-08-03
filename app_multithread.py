@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 import signal, sys, time
-#from pyA20.gpio import gpio
-#from pyA20.gpio import port
-#from pyA20.gpio import connector
 from Conf import conf_parser
 from  gpio_handler import Movement_handler
 import G_parser
@@ -22,9 +19,12 @@ command_pool=[]
 
 def read_thread():
     while True:
-        print "Ready to execute"
+        print "Ready to execute >"
         command = raw_input()
-        if command[0:4].upper()=="OPEN":
+        if command[0:4].upper()=="EXIT":
+            command_pool.append("EXIT") 
+            exit()
+        elif command[0:4].upper()=="OPEN":
             gparser.open_file(command[5:])
         elif command[0:3].upper()=="RUN":
             command_pool.append("RUN")
@@ -34,16 +34,12 @@ def read_thread():
             command_pool.append(command.upper())
         print command_pool
 
-def execute_thread():
-    runned=0
-        
-        
 
 p1 = threading.Thread(target=read_thread)
-p2 = threading.Thread(target=execute_thread)
 p1.start()
-p2.start()
+
 runned=0
+
 while True:
         if runned:
             p=gparser.get_commands()
@@ -53,16 +49,16 @@ while True:
                 mh.run()
                 while mh.is_buzy():
                     signal.pause()
-                    #time.sleep(0.01)
             else:
                 print 'EOF'
                 runned=0
         else:
             time.sleep(1)
-            #print "wait",  command_pool
         if command_pool:
             command=command_pool.pop(0)
-            if command=="RUN":
+            if command == "EXIT":
+                exit(0)
+            elif command=="RUN":
                 runned=1
             elif command=="STOP":
                 runned=0
@@ -80,4 +76,3 @@ while True:
 
 
 p1.join()
-p2.join()
