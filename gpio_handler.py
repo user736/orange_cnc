@@ -30,6 +30,8 @@ class Movement_handler(object):
         self.reset_movement({})
 
     def reset_movement(self, movement):
+        if not self.buzy and self.params['debug']>1:
+            print 'input >', movement
         movement['value']=0
         movement['c_x']=0
         movement['c_y']=0
@@ -52,16 +54,20 @@ class Movement_handler(object):
         if not movement['max_steps']:
             movement['max_steps']=1
         movement['s_x']= 0 if movement['steps_x'] and (movement['steps_x']==movement['max_steps'] or movement['max_steps']//movement['steps_x']>1) else 1
-        movement['q_x']= movement['max_steps']//movement['steps_x'] if not(movement['s_x']) else movement['max_steps']//(movement['max_steps'] - movement['steps_x'])
+        #movement['q_x']= movement['max_steps']//movement['steps_x'] if not(movement['s_x']) else movement['max_steps']//(movement['max_steps'] - movement['steps_x'])
+        movement['q_x']= round(movement['max_steps']/movement['steps_x']) if not(movement['s_x']) else round(movement['max_steps']/(movement['max_steps'] - movement['steps_x']))
         movement['s_y']= 0 if movement['steps_y'] and (movement['steps_y']==movement['max_steps'] or movement['max_steps']//movement['steps_y']>1) else 1
-        movement['q_y']= movement['max_steps']//movement['steps_y'] if not(movement['s_y']) else movement['max_steps']//(movement['max_steps'] - movement['steps_y'])
+        #movement['q_y']= movement['max_steps']//movement['steps_y'] if not(movement['s_y']) else movement['max_steps']//(movement['max_steps'] - movement['steps_y'])
+        movement['q_y']= round(movement['max_steps']/movement['steps_y']) if not(movement['s_y']) else round(movement['max_steps']/(movement['max_steps'] - movement['steps_y']))
         movement['s_z']= 0 if movement['steps_z'] and (movement['steps_z']==movement['max_steps'] or movement['max_steps']//movement['steps_z']>1) else 1
-        movement['q_z']= movement['max_steps']//movement['steps_z'] if not(movement['s_z']) else movement['max_steps']//(movement['max_steps'] - movement['steps_z'])
+        #movement['q_z']= movement['max_steps']//movement['steps_z'] if not(movement['s_z']) else movement['max_steps']//(movement['max_steps'] - movement['steps_z'])
+        movement['q_z']= round(movement['max_steps']/movement['steps_z']) if not(movement['s_z']) else round(movement['max_steps']/(movement['max_steps'] - movement['steps_z']))
         self.movement=movement
         gpio.output(port.PA8, movement['dir_x'])
         gpio.output(port.PA7, movement['dir_y'])
         gpio.output(port.PA19, movement['dir_z'])
-        print movement
+        if self.params['debug']>1:
+            print movement
 
     def alarm_handler(self, signum, frame):
         movement=self.movement

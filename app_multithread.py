@@ -9,11 +9,9 @@ import threading
 c_parser=conf_parser()
 
 mh=Movement_handler(c_parser.get_config('gpio_handler'))
-print mh.params
 mh.run()
 
 gparser=G_parser.Parser(c_parser.get_config('G_parser'))
-print gparser.params
 
 command_pool=[]
 
@@ -44,7 +42,6 @@ while True:
         if runned:
             p=gparser.get_commands()
             if p:
-                print p
                 mh.reset_movement(p)
                 mh.run()
                 while mh.is_buzy():
@@ -62,13 +59,20 @@ while True:
                 runned=1
             elif command=="STOP":
                 runned=0
+            elif command[0:4].upper()=="TEST":
+                gpio_test_params={'dir_y': 0, 'dir_x': 0, 'dir_z': 0, 'interval': 0.01, 'steps_z': 0, 'steps_y': 0, 'steps_x': 0}
+                test_command=gparser.convert_line(command[5:])
+                for key in test_command.keys():
+                    gpio_test_params['steps_'+key.lower()]=test_command[key]
+                print command, gpio_test_params
+                mh.reset_movement(gpio_test_params)
+                mh.run()
             else:
                 converted_command=gparser.convert_line(command)
                 print command, converted_command
                 gparser.process(converted_command)
                 if gparser.is_moved():
                     p=gparser.get_commands()
-                    print p
                     mh.reset_movement(p)
                     mh.run()
                     while mh.is_buzy():
