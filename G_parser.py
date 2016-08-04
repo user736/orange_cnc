@@ -43,6 +43,10 @@ class Parser(object):
             self.exp_y=self.curr_y=self.next_y=coordinates['Y']
         if 'Z' in coordinates:
             self.exp_z=self.curr_z=self.next_z=coordinates['Z']
+
+    def get_coordinates(self):
+        return {'X':self.curr_x, 'Y':self.curr_y, 'Z':self.curr_z}
+
 ###########---Getters---##########
 
     def open_file(self, fname):

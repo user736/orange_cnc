@@ -9,7 +9,6 @@ import threading
 c_parser=conf_parser()
 
 mh=Movement_handler(c_parser.get_config('gpio_handler'))
-mh.run()
 
 gparser=G_parser.Parser(c_parser.get_config('G_parser'))
 
