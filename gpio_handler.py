@@ -104,7 +104,9 @@ class Movement_handler(object):
                 movement['c_z']+=1
                 if movement['c_z']==movement['q_z']:
                     movement['c_z']=0
-                if (movement['s_x'] and movement['q_x']==2) or (movement['s_y'] and movement['q_y']==2) or (movement['s_z'] and movement['q_z']==2):
+                if (movement['s_x'] and movement['q_x']==2 and not movement['c_x']) \
+                or (movement['s_y'] and movement['q_y']==2 and not movement['c_y']) \
+                or (movement['s_z'] and movement['q_z']==2 and not movement['c_z']):
                     self.reset_movement(self.movement)
 
     def run(self):
