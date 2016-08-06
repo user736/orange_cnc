@@ -10,6 +10,7 @@ class Movement_handler(object):
     def __init__(self, params):
         self.params=params
         self.buzy=0
+        self.move_resul={'success':1, 'dx':0, 'dy':0, 'dz':0}
         signal.signal(signal.SIGALRM, self.alarm_handler)
 
         gpio.init() #Initialize module. Always called first
@@ -42,6 +43,12 @@ class Movement_handler(object):
             movement['steps_y']=0
         if 'steps_z' not in movement:
             movement['steps_z']=0
+        if 'exp_x' not in movement:
+            movement['exp_x']=movement['steps_x']
+        if 'exp_y' not in movement:
+            movement['exp_y']=movement['steps_y']
+        if 'exp_z' not in movement:
+            movement['exp_z']=movement['steps_z']
         if 'dir_x' not in movement:
             movement['dir_x']=0
         if 'dir_y' not in movement:
@@ -74,7 +81,7 @@ class Movement_handler(object):
         if 'steps_x' not in movement \
         or 'steps_y' not in movement \
         or 'steps_z' not in movement \
-        or movement['steps_x']+movement['steps_y']+movement['steps_z']==0:
+        or movement['steps_x']+movement['steps_y']+movement['steps_z']==0 or self.stop:
             signal.setitimer(signal.ITIMER_REAL, 0)
             self.buzy=0
         else:
@@ -111,7 +118,20 @@ class Movement_handler(object):
 
     def run(self):
         self.buzy=1
+        self.stop=0
         signal.setitimer(signal.ITIMER_REAL, self.movement['interval'], self.movement['interval'])
+
+    def break_movement(self):
+        self.stop=1
+        move_params=self.params['move_params']
+        movement=self.movement
+        dx=(movement['exp_x']-movement['steps_x'])/move_params['x_steps_per_mm']
+        dy=(movement['exp_y']-movement['steps_y'])/move_params['y_steps_per_mm']
+        dz=(movement['exp_z']-movement['steps_z'])/move_params['z_steps_per_mm']
+        self.move_resul={'success':not (movement['steps_x']+movement['steps_y']+movement['steps_z']), 'dx':dx, 'dy':dy, 'dz':dz}
+
+    def get_move_res(self):
+        return self.move_resul
 
     def is_buzy(self):
         return self.buzy
