@@ -82,6 +82,11 @@ class Movement_handler(object):
         or 'steps_y' not in movement \
         or 'steps_z' not in movement \
         or movement['steps_x']+movement['steps_y']+movement['steps_z']==0 or self.stop:
+            move_params=self.params['move_params']
+            dx=(movement['exp_x']-movement['steps_x'])/move_params['x_steps_per_mm']
+            dy=(movement['exp_y']-movement['steps_y'])/move_params['y_steps_per_mm']
+            dz=(movement['exp_z']-movement['steps_z'])/move_params['z_steps_per_mm']
+            self.move_resul={'success':not (movement['steps_x']+movement['steps_y']+movement['steps_z']), 'dx':dx, 'dy':dy, 'dz':dz}
             signal.setitimer(signal.ITIMER_REAL, 0)
             self.buzy=0
         else:
@@ -123,12 +128,6 @@ class Movement_handler(object):
 
     def break_movement(self):
         self.stop=1
-        move_params=self.params['move_params']
-        movement=self.movement
-        dx=(movement['exp_x']-movement['steps_x'])/move_params['x_steps_per_mm']
-        dy=(movement['exp_y']-movement['steps_y'])/move_params['y_steps_per_mm']
-        dz=(movement['exp_z']-movement['steps_z'])/move_params['z_steps_per_mm']
-        self.move_resul={'success':not (movement['steps_x']+movement['steps_y']+movement['steps_z']), 'dx':dx, 'dy':dy, 'dz':dz}
 
     def get_move_res(self):
         return self.move_resul
