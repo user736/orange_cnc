@@ -18,7 +18,16 @@ def read_thread():
     while True:
         print "Ready to execute >"
         command = raw_input()
-        if command[0:4].upper()=="EXIT":
+        if command[0:5].upper()=="BREAK":
+            command_pool.insert(0,"BREAK")
+            mh.break_movement()
+            while mh.is_buzy():
+                time.sleep(1)
+            print mh.get_move_res()
+        elif command[0:8].upper()=="CONTINUE":
+            if not mh.is_buzy():
+                mh.run()
+        elif command[0:4].upper()=="EXIT":
             command_pool.append("EXIT") 
             exit()
         elif command[0:4].upper()=="OPEN":

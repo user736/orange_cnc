@@ -126,6 +126,9 @@ class Movement_handler(object):
         self.stop=0
         signal.setitimer(signal.ITIMER_REAL, self.movement['interval'], self.movement['interval'])
 
+    def get_movement(self):
+        return self.movement
+
     def break_movement(self):
         self.stop=1
 
