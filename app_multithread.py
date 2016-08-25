@@ -48,12 +48,13 @@ runned=0
 
 while True:
         if runned:
-            p=gparser.get_commands()
-            if p:
-                mh.reset_movement(p)
-                mh.run()
-                while mh.is_buzy():
-                    signal.pause()
+            commands=gparser.get_commands()
+            if commands:
+                for command in commands:
+                    mh.reset_movement(command)
+                    mh.run()
+                    while mh.is_buzy():
+                        signal.pause()
             else:
                 print 'EOF'
                 runned=0
@@ -80,11 +81,12 @@ while True:
                 print command, converted_command
                 gparser.process(converted_command)
                 if gparser.is_moved():
-                    p=gparser.get_commands()
-                    mh.reset_movement(p)
-                    mh.run()
-                    while mh.is_buzy():
-                        signal.pause()
+                    commands=gparser.get_commands()
+                    for command in commands:
+                        mh.reset_movement(command)
+                        mh.run()
+                        while mh.is_buzy():
+                            signal.pause()
 
 
 p1.join()

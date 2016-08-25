@@ -29,6 +29,12 @@ class Parser(object):
     def set_shape(self, value):
         self.shape=value
 
+    def get_shape(self):
+        if hasattr(self, 'shape'):
+            return self.shape
+        else:
+            return 1
+
     def set_clockwise(self, value):
         self.clockwise=value
 
@@ -133,5 +139,7 @@ class Parser(object):
                 return None
             print self, s
             self.process(self.convert_line(s))
-        res=self.generate_line_comand(self.next_x-self.exp_x, self.next_y-self.exp_y, self.next_z-self.exp_z) 
+        res=[]
+        if self.get_shape()==1:
+            res.append(self.generate_line_comand(self.next_x-self.exp_x, self.next_y-self.exp_y, self.next_z-self.exp_z))
         return res
