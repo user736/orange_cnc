@@ -133,6 +133,8 @@ class Parser(object):
         res['steps_y']=int(dy*move_params['y_steps_per_mm'])
         res['steps_z']=int(dz*move_params['z_steps_per_mm'])
         steps_s=max(res['steps_x'],res['steps_y'],res['steps_z'])
+        if not steps_s:
+            return None
         feed_s=self.feed_rate_z if dx==dy==0 else self.feed_rate
         s_steps_per_mm=steps_s/ds
         interval_s=60/(feed_s*s_steps_per_mm)
@@ -252,7 +254,10 @@ class Parser(object):
                     if c in self.command:
                         center[c]=self.command[c]
             points=self.calc_g2_3_points(center)
+            sx, sy, sz=points[0]['X'], points[0]['Y'], points[0]['Z']
             for i in range(1,len(points)):
-                res.append(self.generate_line_comand(points[i]['X']-points[i-1]['X'],points[i]['Y']-points[i-1]['Y'],points[i]['Z']-points[i-1]['Z']))
-            print points
+                l_com=self.generate_line_comand(points[i]['X']-sx, points[i]['Y']-sy, points[i]['Z']-sz)
+                if l_com:
+                    res.append(l_com)
+                    sx, sy, sz=points[i]['X'], points[i]['Y'], points[i]['Z']
         return res
