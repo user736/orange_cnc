@@ -4,7 +4,8 @@ import signal, sys, time
 from Conf import conf_parser
 from  gpio_handler import Movement_handler
 import G_parser
-import threading
+import subprocess, threading
+
 
 c_parser=conf_parser()
 
@@ -45,6 +46,7 @@ p1 = threading.Thread(target=read_thread)
 p1.start()
 
 runned=0
+child=0
 
 while True:
         if runned:
@@ -68,6 +70,16 @@ while True:
                 runned=1
             elif command=="STOP":
                 runned=0
+            elif command[0:3].upper()=="PWM":
+                 if not child:
+                     child = subprocess.Popen('./pwm.py', stdin=subprocess.PIPE)
+                 comm=command[3:]
+                 print comm
+                 child.stdin.write(comm+'\n')
+                 child.send_signal(17)
+                 if comm=='STOP':
+                     child=0
+
             elif command[0:4].upper()=="TEST":
                 gpio_test_params={'dir_y': 0, 'dir_x': 0, 'dir_z': 0, 'interval': 0.01, 'steps_z': 0, 'steps_y': 0, 'steps_x': 0}
                 test_command=gparser.convert_line(command[5:])
