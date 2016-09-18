@@ -166,7 +166,7 @@ class Parser(object):
 #       v1=(x1-(xc+dx),y1-(yc+dy))
 #       v2=(x2-(xc+dx),y2-(yc+dy))
         v_multi=(y1-(yc+dy))*(x2-(xc+dx))-(x1-(xc+dx))*(y2-(yc+dy))
-        if v_multi<0 and self.get_clockwise():
+        if v_multi<0 and self.get_clockwise() or v_multi>0 and not self.get_clockwise():
             return ((xc+dx),(yc+dy))
         else:
             return ((xc-dx),(yc-dy))
@@ -185,7 +185,7 @@ class Parser(object):
         alpha_e=math.acos(e_1/r_e)
         if e_2<0:
             alpha_e=-alpha_e
-        if self.get_clockwise():
+        if not self.get_clockwise():
             d_alpha=self.d_alpha
             if alpha_e<alpha_b:
                 alpha_e+=math.pi*2
