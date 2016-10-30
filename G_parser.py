@@ -166,7 +166,7 @@ class Parser(object):
 #       v1=(x1-(xc+dx),y1-(yc+dy))
 #       v2=(x2-(xc+dx),y2-(yc+dy))
         v_multi=(y1-(yc+dy))*(x2-(xc+dx))-(x1-(xc+dx))*(y2-(yc+dy))
-        if v_multi<0 and self.get_clockwise() or v_multi>0 and not self.get_clockwise():
+        if v_multi<0 and not self.get_clockwise() or v_multi>0 and self.get_clockwise():
             return ((xc+dx),(yc+dy))
         else:
             return ((xc-dx),(yc-dy))
