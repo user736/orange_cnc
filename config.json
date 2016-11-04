@@ -25,5 +25,10 @@
             "y_feed": 100.0,
             "z_feed": 100.0
         }
+    },
+    "PWM":{
+        "debug":1,
+        "max_duty":50,
+        "max_rpm":10000
     }
 }

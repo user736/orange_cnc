@@ -5,13 +5,30 @@ from Conf import conf_parser
 from  gpio_handler import Movement_handler
 import G_parser
 import subprocess, threading
+import PWM
 
+
+def motion(mh, command):
+    mh.reset_movement(command)
+    mh.run()
+    while mh.is_buzy():
+        signal.pause()
+
+def rotation(pwm, command):
+    r=command.pop('M')
+    rpm=command.pop('S') if 'S' in command else 2000
+    if r==5:
+        pwm.stop()
+    else:
+        pwm.run(rpm)
 
 c_parser=conf_parser()
 
 mh=Movement_handler(c_parser.get_config('gpio_handler'))
 
 gparser=G_parser.Parser(c_parser.get_config('G_parser'))
+
+pwm=PWM.PWM(c_parser.get_config('PWM'))
 
 command_pool=[]
 
@@ -46,17 +63,16 @@ p1 = threading.Thread(target=read_thread)
 p1.start()
 
 runned=0
-child=0
 
 while True:
         if runned:
             commands=gparser.get_commands()
             if commands:
                 for command in commands:
-                    mh.reset_movement(command)
-                    mh.run()
-                    while mh.is_buzy():
-                        signal.pause()
+                    if 'M' in command:
+                        rotation(pwm, command)
+                    if command:
+                        motion(mh, command)
             else:
                 print 'EOF'
                 runned=0
@@ -70,16 +86,6 @@ while True:
                 runned=1
             elif command=="STOP":
                 runned=0
-            elif command[0:3].upper()=="PWM":
-                 if not child:
-                     child = subprocess.Popen('./pwm.py', stdin=subprocess.PIPE)
-                 comm=command[3:]
-                 print comm
-                 child.stdin.write(comm+'\n')
-                 child.send_signal(17)
-                 if comm=='STOP':
-                     child=0
-
             elif command[0:4].upper()=="TEST":
                 gpio_test_params={'dir_y': 0, 'dir_x': 0, 'dir_z': 0, 'interval': 0.01, 'steps_z': 0, 'steps_y': 0, 'steps_x': 0}
                 test_command=gparser.convert_line(command[5:])
@@ -92,13 +98,13 @@ while True:
                 converted_command=gparser.convert_line(command)
                 print command, converted_command
                 gparser.process(converted_command)
-                if gparser.is_moved():
+                if gparser.is_moved() or gparser.spindle['changed']:
                     commands=gparser.get_commands()
                     for command in commands:
-                        mh.reset_movement(command)
-                        mh.run()
-                        while mh.is_buzy():
-                            signal.pause()
+                        if 'M' in command:
+                            rotation(pwm, command)
+                        if command:
+                            motion(mh, command)
 
 
 p1.join()

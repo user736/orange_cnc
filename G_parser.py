@@ -18,6 +18,7 @@ class Parser(object):
         move_params=self.params['move_params']
         self.rapid_feed=(move_params['x_max_feed']**2+move_params['y_max_feed']**2+move_params['z_max_feed']**2)**0.5
         self.d_alpha=math.pi/360
+        self.spindle={'changed':0}
 ############---Setters---############
 
     def set_mode(self, value):
@@ -121,6 +122,11 @@ class Parser(object):
                 self.next_z=instructions['Z']
             else:
                 self.next_z=instructions['Z']+self.exp_z
+        if 'M' in instructions:
+            self.spindle['changed']=1
+            self.spindle['M']=instructions['M']
+            if 'S' in instructions:
+                self.spindle['S']=instructions['S']
 
     def generate_line_comand(self, dx, dy, dz):
         res={'dir_x':int(dx>0),'dir_y':int(dy>0), 'dir_z':int(dz>0)}
@@ -234,14 +240,21 @@ class Parser(object):
         return self.next_x-self.exp_x or self.next_y-self.exp_y or self.next_z-self.exp_z
 
     def get_commands(self):
-        while not self.is_moved():
+        while not (self.is_moved() or self.spindle['changed']):
             s=self.read_line()
             if not(s):
                 return None
             print self, s
-            self.convert_line(s)
             self.process(self.convert_line(s))
         res=[]
+        if self.spindle['changed']:
+            self.spindle['changed']=0
+            comm={'M':self.spindle['M']}
+            if 'S' in self.spindle:
+                comm['S']=self.spindle['S']
+            res.append(comm)
+        if not self.is_moved():
+            return res
         if self.get_shape()==1:
             res.append(self.generate_line_comand(self.next_x-self.exp_x, self.next_y-self.exp_y, self.next_z-self.exp_z))
         else:
