@@ -28,7 +28,7 @@
     },
     "PWM":{
         "debug":1,
-        "max_duty":50,
+        "max_duty":6,
         "max_rpm":10000
     }
 }
