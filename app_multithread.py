@@ -5,7 +5,7 @@ from Conf import conf_parser
 from  gpio_handler import Movement_handler
 import G_parser
 import subprocess, threading
-import PWM
+import Spindle
 
 
 def motion(mh, command):
@@ -14,13 +14,13 @@ def motion(mh, command):
     while mh.is_buzy():
         signal.pause()
 
-def rotation(pwm, command):
+def rotation(spindle, command):
     r=command.pop('M')
     rpm=command.pop('S') if 'S' in command else 2000
     if r==5:
-        pwm.stop()
+        spindle.stop()
     else:
-        pwm.run(rpm)
+        spindle.run(rpm)
 
 c_parser=conf_parser()
 
@@ -28,7 +28,7 @@ mh=Movement_handler(c_parser.get_config('gpio_handler'))
 
 gparser=G_parser.Parser(c_parser.get_config('G_parser'))
 
-pwm=PWM.PWM(c_parser.get_config('PWM'))
+spindle=Spindle.Spindle(c_parser.get_config('PWM'))
 
 command_pool=[]
 
@@ -70,7 +70,7 @@ while True:
             if commands:
                 for command in commands:
                     if 'M' in command:
-                        rotation(pwm, command)
+                        rotation(spindle, command)
                     if command:
                         motion(mh, command)
             else:
@@ -102,7 +102,7 @@ while True:
                     commands=gparser.get_commands()
                     for command in commands:
                         if 'M' in command:
-                            rotation(pwm, command)
+                            rotation(spindle, command)
                         if command:
                             motion(mh, command)
 
