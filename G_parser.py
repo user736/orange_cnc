@@ -272,5 +272,5 @@ class Parser(object):
                 l_com=self.generate_line_comand(points[i]['X']-sx, points[i]['Y']-sy, points[i]['Z']-sz)
                 if l_com:
                     res.append(l_com)
-                    sx, sy, sz=points[i]['X'], points[i]['Y'], points[i]['Z']
+                    sx, sy, sz = self.curr_x, self.curr_y, self.curr_z
         return res
