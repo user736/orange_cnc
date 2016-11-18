@@ -86,6 +86,8 @@ while True:
                 runned=1
             elif command=="STOP":
                 runned=0
+            elif command[0:7]=="REVERSE":
+                gparser.reverse(command[8:])
             elif command[0:4].upper()=="TEST":
                 gpio_test_params={'dir_y': 0, 'dir_x': 0, 'dir_z': 0, 'interval': 0.01, 'steps_z': 0, 'steps_y': 0, 'steps_x': 0}
                 test_command=gparser.convert_line(command[5:])

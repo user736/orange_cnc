@@ -6,6 +6,7 @@ import re, math
 
 class Parser(object):
     def __init__(self, params):
+        self.directions={'X':{0:0,1:1},'Y':{0:0,1:1},'Z':{0:0,1:1}}
         self.params=params
         self.mode=90  # absolute by default
         self.feed_mode=0 #rapid move by default
@@ -19,6 +20,7 @@ class Parser(object):
         self.rapid_feed=(move_params['x_max_feed']**2+move_params['y_max_feed']**2+move_params['z_max_feed']**2)**0.5
         self.d_alpha=math.pi/360
         self.spindle={'changed':0}
+
 ############---Setters---############
 
     def set_mode(self, value):
@@ -30,30 +32,12 @@ class Parser(object):
     def set_shape(self, value):
         self.shape=value
 
-    def get_shape(self):
-        if hasattr(self, 'shape'):
-            return self.shape
-        else:
-            return 1
-
     def set_polar_plane(self, value):
         polar_plane_map={17:'XY', 18:'XZ', 19:'YZ'}
         self.polar_plane=polar_plane_map[value]
 
-    def get_polar_plane(self):
-        if hasattr(self, 'polar_plane'):
-            return self.polar_plane
-        else:
-            return 'XY'
-
     def set_clockwise(self, value):
         self.clockwise=value
-
-    def get_clockwise(self):
-        if hasattr(self, 'clockwise'):
-            return self.clockwise
-        else:
-            return 0
 
     def set_coordinates(self, coordinates):
         if 'X' not in coordinates and 'Y' not in coordinates and 'Z' not in coordinates:
@@ -67,10 +51,35 @@ class Parser(object):
         if 'Z' in coordinates:
             self.exp_z=self.curr_z=self.next_z=coordinates['Z']
 
-    def get_coordinates(self):
-        return {'X':self.curr_x, 'Y':self.curr_y, 'Z':self.curr_z}
+    def reverse(self, axis):
+        dir_map=self.directions
+        for ax in axis:
+            if ax in dir_map:
+                dir_map[ax][0]=1-dir_map[ax][0]
+                dir_map[ax][1]=1-dir_map[ax][1]
 
 ###########---Getters---##########
+
+    def get_shape(self):
+        if hasattr(self, 'shape'):
+            return self.shape
+        else:
+            return 1
+
+    def get_polar_plane(self):
+        if hasattr(self, 'polar_plane'):
+            return self.polar_plane
+        else:
+            return 'XY'
+
+    def get_clockwise(self):
+        if hasattr(self, 'clockwise'):
+            return self.clockwise
+        else:
+            return 0
+
+    def get_coordinates(self):
+        return {'X':self.curr_x, 'Y':self.curr_y, 'Z':self.curr_z}
 
     def open_file(self, fname):
         self.f_handler=open(fname, 'r')
@@ -129,7 +138,8 @@ class Parser(object):
                 self.spindle['S']=instructions['S']
 
     def generate_line_comand(self, dx, dy, dz):
-        res={'dir_x':int(dx>0),'dir_y':int(dy>0), 'dir_z':int(dz>0)}
+        dir_map=self.directions
+        res={'dir_x':dir_map['X'][int(dx>0)],'dir_y':dir_map['Y'][int(dy>0)], 'dir_z':dir_map['Z'][int(dz>0)]}
         dx=abs(dx)
         dy=abs(dy)
         dz=abs(dz)
