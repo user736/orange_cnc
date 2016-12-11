@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
-import signal, sys, time
+import signal, sys
+from time import sleep
 from Conf import conf_parser
 from  gpio_handler import Movement_handler
 import G_parser
 import subprocess, threading
 import Spindle
+from pygame_handler import *
+from joystick import *
+from pygame import *
 
 
 def motion(mh, command):
@@ -13,6 +17,9 @@ def motion(mh, command):
     mh.run()
     while mh.is_buzy():
         signal.pause()
+    if screen_active:
+        c=gparser.get_coordinates()
+        screen.move(c['X'], c['Y'], c['Z'])
 
 def rotation(spindle, command):
     r=command.pop('M')
@@ -40,7 +47,7 @@ def read_thread():
             command_pool.insert(0,"BREAK")
             mh.break_movement()
             while mh.is_buzy():
-                time.sleep(1)
+                sleep(1)
             print mh.get_move_res()
         elif command[0:8].upper()=="CONTINUE":
             if not mh.is_buzy():
@@ -58,13 +65,33 @@ def read_thread():
             command_pool.append(command.upper())
         print command_pool
 
+def joystick_handling(c_pool):
+    step=0.2
+    if not joystick:
+        joy=Joy({'keys':['yes','cansel', 'dx+', 'dx-', 'dy+', 'dy-', 'dz+', 'dz-']}, {})
+        if not joy.discover():
+            return None
+    else:
+        joy=joystick
+    b=joy.get_buttons()
+    command = 'G91X'+str((b['dx+']-b['dx-'])*step)+'Y'+str((b['dy+']-b['dy-'])*step)+'Z'+str((b['dz+']-b['dz-'])*step)
+    if (b['dx+']-b['dx-']) or (b['dy+']-b['dy-']) or (b['dz+']-b['dz-']):
+        c_pool.append(command)
+    return joy
 
+screen=None
+screen_active=False
+joystick=None
+joystick_active=False
 p1 = threading.Thread(target=read_thread)
 p1.start()
 
 runned=0
+joystick=0
 
 while True:
+        if joystick_active:
+            joystick=joystick_handling(command_pool)
         if runned:
             commands=gparser.get_commands()
             if commands:
@@ -76,8 +103,8 @@ while True:
             else:
                 print 'EOF'
                 runned=0
-        else:
-            time.sleep(1)
+        elif not joystick_active:
+            sleep(1)
         if command_pool:
             command=command_pool.pop(0)
             if command == "EXIT":
@@ -86,6 +113,12 @@ while True:
                 runned=1
             elif command=="STOP":
                 runned=0
+            elif command=="JOY":
+                joystick_active=not joystick_active
+            elif command=="SCREEN":
+                screen_active=not screen_active
+                if not screen:
+                    screen = cnc_screen({})
             elif command[0:7]=="REVERSE":
                 gparser.reverse(command[8:])
             elif command[0:4].upper()=="TEST":
@@ -94,8 +127,7 @@ while True:
                 for key in test_command.keys():
                     gpio_test_params['steps_'+key.lower()]=test_command[key]
                 print command, gpio_test_params
-                mh.reset_movement(gpio_test_params)
-                mh.run()
+                motion(mh, gpio_test_params)
             else:
                 converted_command=gparser.convert_line(command)
                 print command, converted_command
