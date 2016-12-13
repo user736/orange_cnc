@@ -17,9 +17,9 @@ def motion(mh, command):
     mh.run()
     while mh.is_buzy():
         signal.pause()
-    if screen_active:
-        c=gparser.get_coordinates()
-        screen.move(c['X'], c['Y'], c['Z'])
+    if screen_active and 'new_pos' in command:
+        c=command['new_pos']
+        screen.move(c[0], c[1], c[2])
 
 def rotation(spindle, command):
     r=command.pop('M')

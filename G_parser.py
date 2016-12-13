@@ -165,6 +165,7 @@ class Parser(object):
         self.curr_x=self.curr_x+res['steps_x']/move_params['x_steps_per_mm']*((res['dir_x'] == dir_map['X'][1])-(res['dir_x'] == dir_map['X'][0]))
         self.curr_y=self.curr_y+res['steps_y']/move_params['y_steps_per_mm']*((res['dir_y'] == dir_map['Y'][1])-(res['dir_y'] == dir_map['Y'][0]))
         self.curr_z=self.curr_z+res['steps_z']/move_params['z_steps_per_mm']*((res['dir_z'] == dir_map['Z'][1])-(res['dir_z'] == dir_map['Z'][0]))
+        res['new_pos']=[self.curr_x, self.curr_y, self.curr_z]
         return res
 
     def calc_circle_center(self, x1, y1, x2, y2, r):
