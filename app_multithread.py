@@ -77,10 +77,10 @@ def joystick_handling(c_pool):
         c_pool.append(command)
     return joy
 
-screen=None
-screen_active=False
-joystick=None
-joystick_active=False
+screen = cnc_screen({})
+screen_active = False
+joystick = None
+joystick_active = False
 p1 = threading.Thread(target=read_thread)
 p1.start()
 
@@ -115,8 +115,6 @@ while True:
                 joystick_active=not joystick_active
             elif command=="SCREEN":
                 screen.revert_active()
-                if not screen:
-                    screen = cnc_screen({})
             elif command[0:7]=="REVERSE":
                 gparser.reverse(command[8:])
             elif command[0:4].upper()=="TEST":
