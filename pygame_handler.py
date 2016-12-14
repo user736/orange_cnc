@@ -21,14 +21,21 @@ class cnc_screen(object):
             params['mill']=0.5
         self.reset_params(params)
         pygame.init()
-        self.display_on=True
+        self.is_active=True
         self.redraw_display()
 
     def get_remapped_mill(self):
         res = int(self.mill*self.mapping['kx'])
         return res
 
+    def revert_active(self):
+        if self.is_active:
+            self.quit()
+        else:
+            self.redraw_display()
+
     def redraw_display(self):
+        self.is_active=True
         self.screen = pygame.display.set_mode(self.size)
         pygame.display.set_caption("Orange CNC "+'X'.join(map(str,self.size)))
         self.screen.fill(Color(self.start_color))
@@ -87,14 +94,15 @@ class cnc_screen(object):
 
     def quit(self):
         pygame.display.quit()
-        self.display_on=False
+        self.is_active=False
 
     def move(self, x, y, z):
         self.points.append({'x':x, 'y':y, 'z':z})
         self.point={'x':x, 'y':y, 'z':z}
-        if len(self.points)>1:
-            self.draw_line(self.points[-2], self.points[-1])
-            pygame.display.flip()
+        if self.is_active:
+            if len(self.points)>1:
+                self.draw_line(self.points[-2], self.points[-1])
+                pygame.display.flip()
 
     def move_90(self, x=0, y=0, z=0):
         x+=self.point['x']

@@ -15,11 +15,9 @@ from pygame import *
 def motion(mh, command):
     mh.reset_movement(command)
     mh.run()
+    screen.move(c[0], c[1], c[2])
     while mh.is_buzy():
         signal.pause()
-    if screen_active and 'new_pos' in command:
-        c=command['new_pos']
-        screen.move(c[0], c[1], c[2])
 
 def rotation(spindle, command):
     r=command.pop('M')
@@ -116,7 +114,7 @@ while True:
             elif command=="JOY":
                 joystick_active=not joystick_active
             elif command=="SCREEN":
-                screen_active=not screen_active
+                screen.revert_active()
                 if not screen:
                     screen = cnc_screen({})
             elif command[0:7]=="REVERSE":
