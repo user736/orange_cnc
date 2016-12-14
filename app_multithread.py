@@ -14,8 +14,10 @@ from pygame import *
 
 def motion(mh, command):
     mh.reset_movement(command)
-    mh.run()
-    screen.move(c[0], c[1], c[2])
+    mh.run() 
+    if 'new_pos' in command:
+        c=command['new_pos']
+        screen.move(c[0], c[1], c[2])
     while mh.is_buzy():
         signal.pause()
 
