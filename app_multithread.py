@@ -117,6 +117,10 @@ while True:
                 joystick_active=not joystick_active
             elif command=="SCREEN":
                 screen.revert_active()
+            elif command=='ZOOMIN':
+                screen.zoom(1)
+            elif command=='ZOOMOUT':
+                screen.zoom(-1)
             elif command[0:7]=="REVERSE":
                 gparser.reverse(command[8:])
             elif command[0:4].upper()=="TEST":

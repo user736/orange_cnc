@@ -14,18 +14,18 @@ class cnc_screen(object):
         if 'md_color' not in params:
             params['md_color']='#00FFFF'
         if 'mapping' not in params:
-            params['mapping']={'dx':0, 'dy':0, 'kx':10, 'ky':10, 'min_z':0, 'max_z':1}
+            params['mapping']={'dx':0, 'dy':0, 'kx':20, 'ky':20, 'min_z':0, 'max_z':1}
         if 'point' not in params:
             params['point']={'x':0, 'y':0, 'z':0}
         if 'mill' not in params:
-            params['mill']=0.5
+            params['mill']=0.8
         self.reset_params(params)
         pygame.init()
         self.is_active=True
         self.redraw_display()
 
     def get_remapped_mill(self):
-        res = int(self.mill*self.mapping['kx'])
+        res = int(self.mill*self.mapping['kx']/2)
         return res
 
     def revert_active(self):
@@ -45,10 +45,11 @@ class cnc_screen(object):
 
     def redraw_system(self):
         mx, my=self.size
-        for x in range(1, mx//10):
-            pygame.draw.line(self.screen, Color('#5f5f5f'), [x*10, 0], [x*10,my], 1)
-        for y in range(1, my//10):
-            pygame.draw.line(self.screen, Color('#5f5f5f'), [0, y*10], [mx, y*10], 1)
+        k = self.mapping['kx']
+        for x in range(1, mx//k):
+            pygame.draw.line(self.screen, Color('#5f5f5f'), [x*k, 0], [x*k,my], 1)
+        for y in range(1, my//k):
+            pygame.draw.line(self.screen, Color('#5f5f5f'), [0, y*k], [mx, y*k], 1)
 
     def redraw_figure(self):
         d=self.get_remapped_mill()
@@ -86,6 +87,17 @@ class cnc_screen(object):
             res.append(c)
         self.colors[z]=res
         return res
+
+    def zoom(self, zk):
+        k = self.mapping['kx']
+        k += zk*10
+        if k == 0:
+            k = 10
+        self.mapping['kx'] = k
+        self.mapping['ky'] = k
+        if zk:
+            self.redraw_display()
+
 
     def refill_colors(self):
         min_z=self.mapping['min_z']
