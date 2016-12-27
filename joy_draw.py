@@ -18,5 +18,5 @@ while 1:
             time.sleep(3)
             screen.redraw_display()
     b=j.get_buttons()
-    screen.move_90((b['dx+']-b['dx-'])*step, (b['dy+']-b['dy-'])*step, (b['dz+']-b['dz-'])*step)
+    screen.move_91((b['dx+']-b['dx-'])*step, (b['dy+']-b['dy-'])*step, (b['dz+']-b['dz-'])*step)
     clock.tick(20)

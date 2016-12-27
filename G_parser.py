@@ -84,6 +84,9 @@ class Parser(object):
     def open_file(self, fname):
         self.f_handler=open(fname, 'r')
 
+    def restart_file(self):
+       self.f_handler.seek(0)
+
     def read_line(self):
         line = self.f_handler.readline()
         return line

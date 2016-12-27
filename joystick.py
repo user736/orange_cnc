@@ -8,12 +8,15 @@ from pygame.locals import *
 
 class Joy(object):
 
-    def __init__(self, params, joy_configs, screen = pygame.display.set_mode((640, 480))):
+    def __init__(self, params, joy_configs, screen = 0):
         self.params=params
         self.config = {}
         self.joy_configs=joy_configs
         pygame.init()
         pygame.joystick.init()
+        pygame.display.init()
+        if not screen:
+            screen = pygame.display.set_mode((800, 600))
         screen.fill((255,0,0))
         self.screen=screen
         #screen.blit()
@@ -123,10 +126,10 @@ class Joy(object):
         # check axes for activity...
         for axis_index in range(js.get_numaxes()):
             axis_status = js.get_axis(axis_index)
-            if axis_status < -.5 and not self.is_axis_used(axis_index, -1):
+            if axis_status < -0.5 and not self.is_axis_used(axis_index, -1):
                 self.config[button] = ('is_axis', axis_index, -1)
                 return True
-            elif axis_status > .5 and not self.is_axis_used(axis_index, 1):
+            elif axis_status > 0.5 and not self.is_axis_used(axis_index, 1):
                 self.config[button] = ('is_axis', axis_index, 1)
                 return True
 

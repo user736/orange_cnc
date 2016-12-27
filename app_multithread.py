@@ -79,7 +79,7 @@ def joystick_handling(c_pool):
         c_pool.append(command)
     return joy
 
-screen = cnc_screen({})
+screen = cnc_screen({'size':(800, 600)})
 screen_active = False
 joystick = None
 joystick_active = False
@@ -111,6 +111,9 @@ while True:
                 exit(0)
             elif command=="RUN":
                 runned=1
+            elif command=="RERUN":
+                gparser.restart_file()
+                runned=1
             elif command=="STOP":
                 runned=0
             elif command=="JOY":
@@ -131,6 +134,8 @@ while True:
                 print command, gpio_test_params
                 motion(mh, gpio_test_params)
             else:
+                if command[0:3]=="G92":
+                    screen.g92()
                 converted_command=gparser.convert_line(command)
                 print command, converted_command
                 gparser.process(converted_command)
