@@ -2,5 +2,5 @@
 2 parameters separated by modules - DONE
 3 step canceling - DONE (break/continue)
 4 gerber parser
-5 g02 g03 interpolation
+5 g02 g03 interpolation - DONE
 6 debug levels and logging
