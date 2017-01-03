@@ -38,6 +38,10 @@ class cnc_screen(object):
         else:
             self.redraw_display()
 
+    def clear(self):
+        self.points=[{'x':self.point['x'], 'y':self.point['y'], 'z':self.point['z']}]
+        self.redraw_display()
+
     def redraw_display(self):
         self.is_active=True
         self.init_disp()

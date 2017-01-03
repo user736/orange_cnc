@@ -133,6 +133,8 @@ while True:
                     gpio_test_params['steps_'+key.lower()]=test_command[key]
                 print command, gpio_test_params
                 motion(mh, gpio_test_params)
+            elif command[0:5].upper()=="CLEAR":
+                screen.clear()
             else:
                 if command[0:3]=="G92":
                     screen.g92()
