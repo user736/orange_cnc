@@ -1,0 +1,14 @@
+
+git clone https://github.com/user736/h3_pwm.git
+git clone https://github.com/user736/orange_cnc.git
+cp h3_pwm/* ./orange_cnc/
+
+apt-get update
+apt-get install python-dev
+git clone https://github.com/duxingkei33/orangepi_PC_gpio_pyH3.git
+python setup.py install 
+
+apt-get install python-pygame
+
+sudo apt install xfce4 xfce4-goodies tightvncserver
+apt-get install xfonts-base
