@@ -4,6 +4,49 @@ import pygame
 from pygame import *
 import time
 
+class Points(list):
+    def __init__(self, l=[]):
+        super(Points, self).__init__(l)
+        if l:
+            self.max_x=l[0]['x']
+            self.min_x=l[0]['x']
+            self.max_y=l[0]['y']
+            self.min_y=l[0]['y']
+            if len(l)>1:
+                for i in range(1, len(l)):
+                    if l[i]['x']>self.max_x:
+                       self.max_x=l[i]['x']
+                    if l[i]['x']<self.min_x:
+                       self.min_x=l[i]['x']
+                    if l[i]['y']>self.max_y:
+                       self.max_y=l[i]['y']
+                    if l[i]['y']<self.min_y:
+                       self.min_y=l[i]['y']
+        else:
+            self.max_x=self.min_x=self.max_y=self.min_y=None
+
+    def append(self, val):
+         super(Points, self).append(val)
+         if self.max_x is None or val['x']>self.max_x:
+             self.max_x=val['x']
+         if self.min_x is None or val['x']<self.min_x:
+             self.min_x=val['x']
+         if self.max_y is None or val['y']>self.max_y:
+             self.max_y=val['y']
+         if self.min_y is None or val['y']<self.min_y:
+             self.min_y=val['y']
+
+    def shift(self, dx, dy):
+        points=self
+        for i in range(len(points)):
+            points[i]['x']+=dx
+            points[i]['y']+=dy
+        self.max_x+=dx
+        self.min_x+=dx
+        self.max_y+=dy
+        self.min_y+=dy
+        points.append({'x':points[-1]['x'], 'y':points[-1]['y']})
+
 class cnc_screen(object):
 
     def __init__(self, params):
@@ -39,7 +82,7 @@ class cnc_screen(object):
             self.redraw_display()
 
     def clear(self):
-        self.points=[{'x':self.point['x'], 'y':self.point['y'], 'z':self.point['z']}]
+        self.points=Points([{'x':self.point['x'], 'y':self.point['y'], 'z':self.point['z']}])
         self.redraw_display()
 
     def redraw_display(self):
@@ -93,11 +136,7 @@ class cnc_screen(object):
                 pygame.draw.line(self.screen, Color('#5f5f5f'), [0, y*k], [mx, y*k], 1)
 
     def shift_figure(self, dx, dy):
-        points=self.points
-        for i in range(len(points)):
-            points[i]['x']+=dx
-            points[i]['y']+=dy
-        points.append({'x':points[-1]['x'], 'y':points[-1]['y']})
+        self.points.shift(dx,dy)
 
     def g92(self, x=0, y=0, z=0):
         dx=self.point['x']-x
@@ -152,8 +191,10 @@ class cnc_screen(object):
             k = 10
         self.mapping['kx'] = k
         self.mapping['ky'] = k
-        if zk:
+        if zk<0:
             self.redraw_display()
+        elif zk>0:
+            self.check_surf_size()
 
     def refill_colors(self):
         min_z=self.mapping['min_z']
@@ -192,16 +233,14 @@ class cnc_screen(object):
             pygame.draw.circle(self.screen, p_s[2], (p_s[0], p_s[1]), d, 0)
             pygame.draw.circle(self.screen, p_e[2], (p_e[0], p_e[1]), d, 0)
         else:
-            x_ = p_e[0]//self.mapping['kx'] - 1
-            _x = (p_e[0]-self.surf_size[0])//self.mapping['kx'] + 1
-            y_ = p_e[1]//self.mapping['ky'] - 1
-            _y = (p_e[1]-self.surf_size[1])//self.mapping['ky'] + 1
+            self.check_surf_size()
 
-            self.mapping['dx'] -= x_*(p_e[0]<0)
-            self.surf_size[0] += _x*(p_e[0]>self.surf_size[0]) - x_*(p_e[0]<0)
-            self.mapping['dy'] -= y_*(p_e[1]<0)
-            self.surf_size[1] += _y*(p_e[1]>self.surf_size[1]) - y_*(p_e[1]<0)
-            self.redraw_display()
+    def check_surf_size(self):
+        self.mapping['dx'] = max(self.mapping['dx'], int(-self.points.min_x)+1)
+        self.mapping['dy'] = max(self.mapping['dy'], int(-self.points.min_y)+1)
+        self.surf_size[0]=max(self.surf_size[0],(self.mapping['dx']+int(self.points.max_x)+1)*self.mapping['kx'])
+        self.surf_size[1]=max(self.surf_size[1],(self.mapping['dy']+int(self.points.max_y)+1)*self.mapping['ky'])
+        self.redraw_display()
 
     def reset_params(self, params):
         if 'size' in params:
@@ -231,7 +270,7 @@ class cnc_screen(object):
         if colors_changed:
             self.refill_colors()
         if not hasattr(self, 'points'):
-            self.points=[{'x':self.point['x'], 'y':self.point['y'], 'z':self.point['z']}]
+            self.points=Points([{'x':self.point['x'], 'y':self.point['y'], 'z':self.point['z']}])
 
 
 def main():
