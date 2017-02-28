@@ -15,7 +15,7 @@
     },
     "gpio_handler":{
         "debug":2,
-        "log":"STDOUT"
+        "log":"STDOUT",
         "axes":{
             "x":{ "steps_pin":20, "dir_pin":8 },
             "y":{ "steps_pin":10, "dir_pin":7 },
