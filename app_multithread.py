@@ -3,7 +3,7 @@
 import signal, sys
 from time import sleep
 from Conf import conf_parser
-from  gpio_handler import Movement_handler
+from  S_handler import Steppers_handler
 import G_parser
 import subprocess, threading
 import Spindle
@@ -13,13 +13,13 @@ from pygame import *
 
 
 def motion(mh, command):
-    mh.reset_movement(command)
-    mh.run() 
+    #mh.reset_movement(command)
+    print "Command_for_test", command
+    mh.move(command)
     if 'new_pos' in command:
         c=command['new_pos']
         screen.move(c[0], c[1], c[2])
-    while mh.is_buzy():
-        signal.pause()
+    print "moved"
 
 def rotation(spindle, command):
     r=command.pop('M')
@@ -31,7 +31,7 @@ def rotation(spindle, command):
 
 c_parser=conf_parser()
 
-mh=Movement_handler(c_parser.get_config('gpio_handler'))
+mh=Steppers_handler(c_parser.get_config('gpio_handler'))
 
 gparser=G_parser.Parser(c_parser.get_config('G_parser'))
 
@@ -108,6 +108,7 @@ while True:
         if command_pool:
             command=command_pool.pop(0)
             if command == "EXIT":
+                mh.destroy()
                 exit(0)
             elif command=="RUN":
                 runned=1

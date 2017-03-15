@@ -142,33 +142,33 @@ class Parser(object):
 
     def generate_line_comand(self, dx, dy, dz):
         dir_map=self.directions
-        res={'dir_x':dir_map['X'][int(dx>0)],'dir_y':dir_map['Y'][int(dy>0)], 'dir_z':dir_map['Z'][int(dz>0)]}
+        res={'x':{'dir':dir_map['X'][int(dx>0)]},'y':{'dir':dir_map['Y'][int(dy>0)]}, 'z':{'dir':dir_map['Z'][int(dz>0)]}}
         dx=abs(dx)
         dy=abs(dy)
         dz=abs(dz)
         ds=(dx**2+dy**2+dz**2)**0.5
         move_params=self.params['move_params']
-        res['steps_x']=int(dx*move_params['x_steps_per_mm'])
-        res['steps_y']=int(dy*move_params['y_steps_per_mm'])
-        res['steps_z']=int(dz*move_params['z_steps_per_mm'])
-        steps_s=max(res['steps_x'],res['steps_y'],res['steps_z'])
+        res['x']['steps']=int(dx*move_params['x_steps_per_mm'])
+        res['y']['steps']=int(dy*move_params['y_steps_per_mm'])
+        res['z']['steps']=int(dz*move_params['z_steps_per_mm'])
+        steps_s=max(res['x']['steps'],res['y']['steps'],res['z']['steps'])
         if not steps_s:
             return None
         feed_s=self.feed_rate_z if dx==dy==0 else self.feed_rate
         s_steps_per_mm=steps_s/ds
         interval_s=60/(feed_s*s_steps_per_mm)
-        interval_x=0 if dx==0 else 60/(move_params['x_max_feed']*move_params['x_steps_per_mm'])
-        interval_y=0 if dx==0 else 60/(move_params['y_max_feed']*move_params['y_steps_per_mm'])
-        interval_z=0 if dx==0 else 60/(move_params['z_max_feed']*move_params['z_steps_per_mm'])
-        res['interval']=max(interval_s, interval_x, interval_y, interval_z)
+        res['x']['interval']=0 if dx==0 else 60/(move_params['x_max_feed']*move_params['x_steps_per_mm'])
+        res['y']['interval']=0 if dy==0 else 60/(move_params['y_max_feed']*move_params['y_steps_per_mm'])
+        res['z']['interval']=0 if dz==0 else 60/(move_params['z_max_feed']*move_params['z_steps_per_mm'])
+        #res['interval']=max(interval_s, interval_x, interval_y, interval_z)
         self.exp_x=self.next_x
         self.exp_y=self.next_y
         self.exp_z=self.next_z
 
-        self.curr_x=self.curr_x+res['steps_x']/move_params['x_steps_per_mm']*((res['dir_x'] == dir_map['X'][1])-(res['dir_x'] == dir_map['X'][0]))
-        self.curr_y=self.curr_y+res['steps_y']/move_params['y_steps_per_mm']*((res['dir_y'] == dir_map['Y'][1])-(res['dir_y'] == dir_map['Y'][0]))
-        self.curr_z=self.curr_z+res['steps_z']/move_params['z_steps_per_mm']*((res['dir_z'] == dir_map['Z'][1])-(res['dir_z'] == dir_map['Z'][0]))
-        res['new_pos']=[self.curr_x, self.curr_y, self.curr_z]
+        self.curr_x=self.curr_x+res['x']['steps']/move_params['x_steps_per_mm']*((res['x']['dir'] == dir_map['X'][1])-(res['x']['dir'] == dir_map['X'][0]))
+        self.curr_y=self.curr_y+res['y']['steps']/move_params['y_steps_per_mm']*((res['y']['dir'] == dir_map['Y'][1])-(res['y']['dir'] == dir_map['Y'][0]))
+        self.curr_z=self.curr_z+res['z']['steps']/move_params['z_steps_per_mm']*((res['z']['dir'] == dir_map['Z'][1])-(res['z']['dir'] == dir_map['Z'][0]))
+        #res['new_pos']=[self.curr_x, self.curr_y, self.curr_z]
         return res
 
     def calc_circle_center(self, x1, y1, x2, y2, r):
