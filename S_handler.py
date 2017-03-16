@@ -4,7 +4,7 @@ from multiprocessing import Process, Pipe
 from Stepper import Stepper
 
 def new_child(conn, params):
-    stepper = Stepper({})
+    stepper = Stepper(params)
     while 1:
         s = conn.recv()
         if s=='RUN':
