@@ -59,13 +59,13 @@ class Stepper(object):
         self.buzy=1
         self.stop=0
         self.s2s=self.steps2sync
+        gpio.output(self.dir_pin, self.dir)
 	if self.interval==0:
             self.buzy=0
         else:
             signal.setitimer(signal.ITIMER_REAL, self.interval, self.interval)
             while not self.stop:
                 signal.pause()
-        gpio.output(self.dir_pin, self.dir)
         return self.buzy
 
     def is_buzy(self):
