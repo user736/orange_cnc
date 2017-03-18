@@ -61,7 +61,8 @@ class Steppers_handler(object):
 
     def add_steps2sync(self, params, divider):
         for axis in params:
-            params[axis]["steps2sync"]=params[axis]["steps"]//divider+(params[axis]["steps"]%divider > 0)
+            if axis in self.Axes:
+                params[axis]["steps2sync"]=params[axis]["steps"]//divider+(params[axis]["steps"]%divider > 0)
 
     def calc_divider(self, params):
         return 3
