@@ -156,9 +156,9 @@ class Parser(object):
             return None
         feed_s=self.feed_rate_z if dx==dy==0 else self.feed_rate
         interval_s=60*ds/feed_s
-        res['x']['interval']=0 if dx==0 else interval_s/res['x']['steps']
-        res['y']['interval']=0 if dy==0 else interval_s/res['y']['steps']
-        res['z']['interval']=0 if dz==0 else interval_s/res['z']['steps']
+        res['x']['interval']=0 if res['x']['steps']==0 else interval_s/res['x']['steps']
+        res['y']['interval']=0 if res['y']['steps']==0 else interval_s/res['y']['steps']
+        res['z']['interval']=0 if res['z']['steps']==0 else interval_s/res['z']['steps']
         self.exp_x=self.next_x
         self.exp_y=self.next_y
         self.exp_z=self.next_z
